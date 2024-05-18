@@ -1,0 +1,33 @@
+<!--Cards-->
+<div class="album py-5">
+    <div class="container">
+
+        <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-3">
+            @for (product of items; track product.code; let i = $index){
+            <div class="col-md-4">
+                <div class="card shadow-sm">
+                    <div class="imgcontainer">
+                        <img src="../../../assets/images/products/{{product.code}}.jpg" alt="{{product.code}}">
+                    </div>
+                    <div class="card-body">
+                        <h4>{{product.name}}</h4>
+                        <h5>Categoría: {{product.category}}</h5>
+                        <p class="card-text">{{product.description}}</p>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div class="btn-group">
+                                <button type="button" class="btn btn-sm btn-outline-secondary me-1" (click)="clickButton1(product)">
+                                    {{labelButton1}}
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-secondary" (click)="clickButton2()">
+                                    {{labelButton2}}
+                                </button>
+                            </div>
+                            <small class="text-body-secondary">${{product.unitPrice.toFixed(2)}}</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            }
+        </div>
+    </div>
+</div>

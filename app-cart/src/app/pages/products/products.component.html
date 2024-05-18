@@ -1,0 +1,23 @@
+<div class="container-fluid ps-5 pe-5">
+  <form class="row g-3 ps-5 pe-5">
+    <div class="col-auto">
+      <select class="form-select" aria-label="Small select example"
+              (change)="filterProducts($event)">
+        <option value="" selected>Todas las categorías</option>
+        @for (category of categories; track category; let i = $index){
+          <option value="{{category}}">{{category}}</option>
+        }
+      </select>
+    </div>
+    <div class="col-auto">
+      <button type="button" class="btn btn-secondary mb-3" (click)="buscarProducto()">Buscar</button>
+    </div>
+  </form>
+</div>
+<app-item-list
+  labelButton1="Agregar al carrito"
+  labelButton2="Ver Detalles"
+  (onClickButton1)="agregar($event)"
+  [items]="products">
+
+</app-item-list>

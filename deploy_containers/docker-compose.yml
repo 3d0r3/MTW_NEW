@@ -1,0 +1,91 @@
+version: "3.9"
+
+#Se definen nombre de contenedores que voy a crear
+services:
+  #Contenedor que va a ser el proxy inverso aqui se agrega el WAF (Web Aplication Firewall) y certificados por que el reverse-proxy nos redirecciona el trafico de red a los contenedores
+  api-gateway:
+    image: nginxproxy/nginx-proxy:alpine
+    container_name: QA-API-Gateway
+    restart: always
+#Estos son los puertos que se usaran para acceder a la aplicacion
+    ports:
+      - 80:80
+      - 443:443
+#Los volumenes son para espejear l archivo de configuracion de nginx
+    environment:
+      - VIRTUAL_HOST=mtwe33page.com.mx
+      - VIRTUAL_PATH=/.well-known
+    volumes:
+#Se mapean los volumenes de los certificados y de la configuracion de nginx
+      - nginx-certs:/etc/nginx/certs:ro
+      - nginx-vhostd:/etc/nginx/vhost.d
+      - nginx-html:/usr/share/nginx/html:rw
+      - /var/run/docker.sock:/tmp/docker.sock:ro
+    networks:
+      - net-qa
+
+#Contenedor para poder tener el certificado de https
+# lets-encrypt:
+#Contenedor para la aplicacion web de angular
+  app-angular:
+    build:
+      context: ../app-cart #Se le dice donde esta el dockerfile al que se le hara el Build, aqui se redirige al Dockerfile de app-cart
+      dockerfile: Dockerfile
+#Args funciona para poder pasar variables de entorno
+#      args:
+#        - AMBIENTE=qa
+    restart: always
+    environment:
+        - VIRTUAL_HOST=mtwe33page.com.mx
+        - VIRTUAL_PATH=/
+    networks:
+        - net-qa
+#Contenedor para la api de node
+  api_node:
+    build:
+      context: ../api-cart
+      dockerfile: Dockerfile
+    restart: always
+    environment:
+        - VIRTUAL_HOST=mtwe33page.com.mx
+        - VIRTUAL_PATH=/api
+        - VIRTUAL_PORT=3000
+        - API_NAME='API CART'
+        - API_PORT=3000
+        - API_HOST=mtwe33page.com.mx
+        - FRONT_END_DOMAIN_URL=mtwe33page.com.mx
+        - API_DOMAIN_URL=mtwe33page.com.mx
+        - MONGO_HOST=db_mongo #referenciamos a la ip del servicio de mongo utilizando su mismo nombre
+        - MONGO_PORT=27017
+        - MONGO_USER=dba-root
+        - MONGO_PASS=mongoadminsecret
+        - MONGO_DATABASE=api-cart
+    networks:
+        - net-qa
+#Contenedor para la base de datos mongo
+  db_mongo:
+    image: mongo:6.0.6
+    command: mongod --auth
+    container_name: QA-MongoDB
+    restart: always
+    ports:
+        - 27017:27017
+    environment:
+        - MONGO_INITDB_ROOT_USERNAME=dba-root
+        - MONGO_INITDB_ROOT_PASSWORD=mongoadminsecret
+    volumes:
+        - mongodb-storage-qa:/data/db
+    networks:
+        - net-qa
+volumes:
+    nginx-certs:
+    nginx-vhostd:
+    nginx-html:
+    mongodb-storage-qa:
+#Las redes son para poder comunicar los contenedores entre si
+networks:
+  net-qa:
+
+
+
+#Si no se les pone nombre a los conetendores se pueden escalar y se pueden replicar.
